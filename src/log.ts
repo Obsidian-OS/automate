@@ -1,7 +1,7 @@
 import util from 'node:util';
 import chalk from 'chalk';
 
-import {config} from './index.js';
+import {config} from './main.js';
 
 export const stripAnsi = (str: string): string => str.replace(/[\u001b\u009b][[()#;?]*(?:\d{1,4}(?:;\d{0,4})*)?[\dA-ORZcf-nqry=><]/g, '');
 export const centre = (text: string, width: number) => {
