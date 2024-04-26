@@ -1,6 +1,7 @@
-import { ItemView, Menu, TextComponent, ViewStateResult, WorkspaceLeaf, apiVersion } from "obsidian";
+import { Command, ItemView, Menu, TextComponent, ViewStateResult, WorkspaceLeaf, apiVersion } from "obsidian";
 import pkg from '../package.json' assert { type: 'json' };
 import oos from '../../manifest.json' assert { type: 'json' };
+import { BrowserSettings } from "./main.js";
 
 export const BROWSER_VIEW = "browser-view";
 
@@ -13,7 +14,7 @@ export default class BrowserView extends ItemView implements BrowserViewState {
     pretty: HTMLDivElement = null as any;
     webview: HTMLElement = null as any;
 
-    constructor(leaf: WorkspaceLeaf, public url: string = '') {
+    constructor(leaf: WorkspaceLeaf, public url: string = '', private settings: BrowserSettings) {
         super(leaf)
     }
 
@@ -36,8 +37,8 @@ export default class BrowserView extends ItemView implements BrowserViewState {
         return "Browser Tab";
     }
     
-    public getUrl(): URL {
-        return new URL(this.url_bar?.getValue());
+    public getUrl(): string {
+        return this.url_bar?.getValue();
     }
 
     async onOpen() {
@@ -52,7 +53,7 @@ export default class BrowserView extends ItemView implements BrowserViewState {
 
         this.webview = container.createEl("webview" as any, {
             attr: {
-                src: "https://www.github.com/",
+                src: this.getState().url || this.settings.home,
                 // useragent: `obsidian-os/${oos.version};obsidian/${apiVersion};obsidian-browser/${pkg.version}`
             },
             cls: ["browser-tab-webview"]
@@ -79,14 +80,6 @@ export default class BrowserView extends ItemView implements BrowserViewState {
         this.url_bar = new TextComponent(url_bar);
         this.url_bar.inputEl.type = "search";
 
-        // console.log('PRESET', preset_url?.url());
-
-        // if (preset_url.url instanceof URL) 
-        //     this.url_bar.setValue(preset_url.url.href);
-        // else if (typeof preset_url.url == 'string') 
-        //     this.url_bar.setValue(preset_url.url);
-        console.log('Receiving URL', this.getState());
-
         this.pretty = url_bar.createDiv({cls: "pretty-container"});
 
         this.url_bar.inputEl.addEventListener("focus", e => (e.target as HTMLInputElement).select());
@@ -104,8 +97,9 @@ export default class BrowserView extends ItemView implements BrowserViewState {
             url = new URL('http://' + search);
         
         else { // TODO: Move search engine to settings
-            url = new URL(`https://www.google.com/search`);
-            url.searchParams.set("q", search);
+            const searchEngine = this.settings.searchEngines[this.settings.defaultSearchEngine];
+            url = new URL(searchEngine.href);
+            url.searchParams.set(searchEngine.query, search);
         }
         
         this.url_bar.setValue(url.href);
@@ -124,13 +118,13 @@ export default class BrowserView extends ItemView implements BrowserViewState {
 
     onPaneMenu(menu: Menu, source: "more-options" | "tab-header" | string): void {
         super.onPaneMenu(menu, source);
-        
+
         menu.addItem(item => item
             .setTitle("Duplicate Tab")
-            .onClick(e => this.app.workspace.getLeaf(true)
-                .setViewState({
-                    type: BROWSER_VIEW,
-                    active: true,
-                }, { url: this.getUrl() })));
+            .onClick(e => (this.app as any as {
+                commands: {
+                    executeCommandById: (command: string) => void
+                }
+            }).commands.executeCommandById('obsidian-os/browser:duplicate-browser-tab')));
     }
 }
