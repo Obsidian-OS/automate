@@ -1,24 +1,6 @@
 import { App, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 
-// import log from './log.js';
 import BrowserView, { BROWSER_VIEW } from './browser.js';
-import { Url } from 'node:url';
-
-// type LogLevel = keyof typeof log;
-
-// export const config: State<{ logLevel: LogLevel }> = new State({
-//     logLevel: 'info' as LogLevel
-// });
-
-// export default async function main(argv: string[]): Promise<boolean> {
-//     const logLevel = Format.oneOf(Object.keys(log) as LogLevel[], false);
-    
-//     for (const { current: i, skip: next } of iterSync.peekable(argv))
-//         if (i == '--log-level')
-//             config.setState({ logLevel: logLevel(next()) });
-
-//     return true;
-// }
 
 export interface BrowserSettings {
     searchEngines: { [name in string]: { href: string, query: string } },
