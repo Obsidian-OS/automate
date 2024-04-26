@@ -2,6 +2,9 @@
 
 This plugin produces a very simplistic, yet integrated browser into Obsidian. It features most of the UI features found in mainstream browsers. 
 
+![A screenshot of the Google homepage](screenshots/image.png)
+![The settings page](screenshots/image-1.png)
+
 ## Features:
 
 The following features are implemented/planned:
