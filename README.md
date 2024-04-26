@@ -11,6 +11,7 @@ The following features are implemented/planned:
 - [x] Duplicate tabs
 - [x] Configure Search engines
 - [x] Set home page
+- [ ] See the page title on the tab
 - [ ] Focus URL bar with hotkey
 - [ ] Set default browser
 - [ ] History navigation
