@@ -13,6 +13,8 @@ export default class BrowserView extends ItemView implements BrowserViewState {
     url_bar: TextComponent = null as any;
     pretty: HTMLDivElement = null as any;
     webview: HTMLElement = null as any;
+    favicon: string[]= [];
+    title: string = '';
 
     constructor(leaf: WorkspaceLeaf, public url: string = '', private settings: BrowserSettings) {
         super(leaf)
@@ -34,7 +36,7 @@ export default class BrowserView extends ItemView implements BrowserViewState {
     }
 
     getDisplayText(): string {
-        return "Browser Tab";
+        return 'New Browser Tab';
     }
     
     public getUrl(): string {
@@ -61,6 +63,14 @@ export default class BrowserView extends ItemView implements BrowserViewState {
 
         this.webview.addEventListener("did-navigate", e => this.didNavigate((e as any).url));
         this.webview.addEventListener("did-navigate-in-page", e => this.didNavigate((e as any).url));
+        this.webview.addEventListener("page-title-updated", e => {
+            this.title = (e as any).title;
+            this.updateTab();
+        });
+        this.webview.addEventListener("page-favicon-updated", e => {
+            this.favicon = (e as any).favicons;
+            this.updateTab();
+        });
 
         this.url_bar.inputEl.addEventListener("change", async e => await this.navigate((e.target as HTMLInputElement).value));
     }
@@ -85,6 +95,31 @@ export default class BrowserView extends ItemView implements BrowserViewState {
         this.url_bar.inputEl.addEventListener("focus", e => (e.target as HTMLInputElement).select());
 
         container.replaceWith(url_bar);
+    }
+
+    updateTab() {
+        // only update the tab title if we're the active tab
+        if (!this.containerEl.closest('.workspace-leaf.mod-active'))
+            return;
+
+        const tab = this.containerEl.closest('.workspace-tabs')?.querySelector('.workspace-tab-header.is-active.mod-active')
+
+        const icon = tab?.querySelector('.workspace-tab-header-inner-icon') as HTMLElement | null;
+        const title = tab?.querySelector('.workspace-tab-header-inner-title') as HTMLElement | null;
+        
+        if (this.favicon[0]) {
+            const img = document.createElement('img');
+            img.classList.add('favicon');
+            img.setAttr('src', this.favicon[0]);
+            icon?.replaceChildren(img);
+        } else {
+            const img = document.createElement('svg');
+            img.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon lucide-file"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>'
+            icon?.replaceChildren(img);
+        }
+
+        if (title)
+            title.innerText = this.title;
     }
 
     async navigate(search: string, updateUrl: boolean = true) {
