@@ -117,8 +117,8 @@ export class BrowserSettingsTab extends PluginSettingTab {
                         this.plugin.settings.defaultSearchEngine = engine;
 
                     else {
-                        new PromptSearchEngineSettings(this.app, this.plugin).open();
-                        this.display();
+                        new PromptSearchEngineSettings(this.app, this.plugin, () => this.display())
+                            .open();
                     }
                 });
             });
@@ -130,7 +130,7 @@ export class PromptSearchEngineSettings extends Modal {
     private href: string = '';
     private q: string = '';
 
-    constructor(app: App, private plugin: Browser) {
+    constructor(app: App, private plugin: Browser, private afterClose: () => void) {
         super(app);
     }
 
@@ -161,6 +161,8 @@ export class PromptSearchEngineSettings extends Modal {
                     this.close();
                     this.plugin.settings.searchEngines[this.name] = { query: this.q, href: this.href };
                     this.plugin.settings.defaultSearchEngine = this.name;
+
+                    this.afterClose();
                 }));
     }
 }
