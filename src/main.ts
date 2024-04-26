@@ -117,6 +117,8 @@ export class PromptSearchEngineSettings extends Modal {
     }
 
     onOpen(): void {
+        this.contentEl.createEl("h1", { text: "Define new Search Engine" });
+
         new Setting(this.contentEl)
             .setName("Name")
             .setDesc("Give your search engine a name")
