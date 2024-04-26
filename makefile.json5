@@ -5,7 +5,7 @@
     targets: {
         'build/main.js': {
             dependencies: ['src/*.ts'],
-            run: "esbuild src/main.ts --outdir=build --bundle --sourcemap --platform=node --format=cjs --external:obsidian"
+            run: "esbuild src/main.ts --outdir=build --bundle --sourcemap --platform=node --format=cjs --external:obsidian --external:electron"
         },
         'build/package.json': {
             dependencies: ['package.json', 'makefile.json5'],

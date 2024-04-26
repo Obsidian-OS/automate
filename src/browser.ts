@@ -1,4 +1,5 @@
 import { Command, ItemView, Menu, TextComponent, ViewStateResult, WorkspaceLeaf, apiVersion } from "obsidian";
+import type { WebviewTag } from 'electron';
 import pkg from '../package.json' assert { type: 'json' };
 import oos from '../../manifest.json' assert { type: 'json' };
 import { BrowserSettings } from "./main.js";
@@ -12,7 +13,7 @@ export interface BrowserViewState {
 export default class BrowserView extends ItemView implements BrowserViewState {
     url_bar: TextComponent = null as any;
     pretty: HTMLDivElement = null as any;
-    webview: HTMLElement = null as any;
+    webview: WebviewTag = null as any;
     favicon: string[]= [];
     title: string = '';
 
@@ -61,14 +62,14 @@ export default class BrowserView extends ItemView implements BrowserViewState {
             cls: ["browser-tab-webview"]
         });
 
-        this.webview.addEventListener("did-navigate", e => this.didNavigate((e as any).url));
-        this.webview.addEventListener("did-navigate-in-page", e => this.didNavigate((e as any).url));
+        this.webview.addEventListener("did-navigate", e => this.didNavigate(e.url));
+        this.webview.addEventListener("did-navigate-in-page", e => this.didNavigate(e.url));
         this.webview.addEventListener("page-title-updated", e => {
-            this.title = (e as any).title;
+            this.title = e.title;
             this.updateTab();
         });
         this.webview.addEventListener("page-favicon-updated", e => {
-            this.favicon = (e as any).favicons;
+            this.favicon = e.favicons;
             this.updateTab();
         });
 
@@ -140,7 +141,7 @@ export default class BrowserView extends ItemView implements BrowserViewState {
         this.url_bar.setValue(url.href);
         
         if (updateUrl)
-            await (this.webview as any as { loadURL: (url: string, options?: {}) => Promise<void> }).loadURL(url.href);
+            await this.webview.loadURL(url.href);
 
         this.pretty.empty();
 
@@ -161,5 +162,19 @@ export default class BrowserView extends ItemView implements BrowserViewState {
                     executeCommandById: (command: string) => void
                 }
             }).commands.executeCommandById('obsidian-os/browser:duplicate-browser-tab')));
+
+        menu.addSeparator();
+
+        menu.addItem(item => item
+            .setTitle("Zoom In")
+            .onClick(_ => this.webview.setZoomLevel(this.webview.getZoomLevel() + 0.2)));
+
+        menu.addItem(item => item
+            .setTitle("Reset Zoom")
+            .onClick(_ => this.webview.setZoomLevel(0)));
+
+        menu.addItem(item => item
+            .setTitle("Zoom Out")
+            .onClick(_ => this.webview.setZoomLevel(this.webview.getZoomLevel() - 0.2)));
     }
 }
