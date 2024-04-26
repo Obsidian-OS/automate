@@ -29,7 +29,10 @@
 
         install: {
             phony: true,
-            run: "cp -r $PWD/build \"$vault_dir/.obsidian/plugins/$(cat package.json | jq -r '.name')\""
+            run: [
+                "mkdir -p \"$vault_dir/.obsidian/plugins/\"",
+                "cp -r $PWD/build \"$vault_dir/.obsidian/plugins/$(cat package.json | jq -r '.name')\""
+            ]
         }
     }
 }
