@@ -13,9 +13,21 @@ export const default_settings: BrowserSettings = {
             href: 'https://www.google.com/search',
             query: 'q'
         },
+        DuckDuckGo: {
+            href: 'https://duckduckgo.com',
+            query: 'q'
+        },
+        Bing: {
+            href: 'https://www.bing.com/search',
+            query: 'q'
+        },
+        Yandex: {
+            href: 'https://yandex.com/search/',
+            query: 'text'
+        }
     },
-    defaultSearchEngine: 'Google',
-    home: 'https://www.google.com/'
+    defaultSearchEngine: 'DuckDuckGo',
+    home: 'https://start.duckduckgo.com/index.html'
 };
 
 export default class Browser extends Plugin {

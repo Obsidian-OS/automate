@@ -1,8 +1,26 @@
-import { Command, ItemView, Menu, TextComponent, ViewStateResult, WorkspaceLeaf, apiVersion } from "obsidian";
-import type { WebviewTag } from 'electron';
+import {
+    Command,
+    ItemView,
+    Menu,
+    Notice,
+    TextComponent,
+    ViewStateResult,
+    WorkspaceLeaf,
+    apiVersion,
+    ButtonComponent
+} from "obsidian";
+import type { MenuItem as NativeMenuItem } from "obsidian";
+import type { WebviewTag, ContextMenuEvent } from 'electron';
 import pkg from '../package.json' assert { type: 'json' };
 import oos from '../../manifest.json' assert { type: 'json' };
 import { BrowserSettings } from "./main.js";
+
+interface MenuItem extends NativeMenuItem {
+    callback:  () => void;
+    dom: HTMLElement;
+    setSubmenu: () => Menu;
+    disabled: boolean;
+}
 
 export const BROWSER_VIEW = "browser-view";
 
@@ -12,6 +30,10 @@ export interface BrowserViewState {
 
 export default class BrowserView extends ItemView implements BrowserViewState {
     url_bar: TextComponent = null as any;
+
+    back: HTMLButtonElement = null as any;
+    fwd: HTMLButtonElement = null as any;
+
     pretty: HTMLDivElement = null as any;
     webview: WebviewTag = null as any;
     favicon: string[]= [];
@@ -72,8 +94,45 @@ export default class BrowserView extends ItemView implements BrowserViewState {
             this.favicon = e.favicons;
             this.updateTab();
         });
+        this.webview.addEventListener("context-menu", ctx => this.showMenu(ctx));
 
         this.url_bar.inputEl.addEventListener("change", async e => await this.navigate((e.target as HTMLInputElement).value));
+
+        this.bindNavigationButtons();
+    }
+
+    showMenu(ctx: ContextMenuEvent) {
+        const menu = new Menu();
+
+        if (ctx.params.linkURL) {
+            menu.addItem(item => item
+                .setTitle("Open link in new tab")
+                .onClick(_ => new Notice("Opening in new Tab")));
+
+            menu.addItem(item => {
+                const submenu = (item as MenuItem)
+                    .setTitle("More link actions")
+                    .setSubmenu();
+
+                submenu.addItem(cb => cb.setTitle("Copy link text"));
+                submenu.addItem(cb => cb.setTitle("Copy link URL"));
+//                submenu.addItem(cb => cb.setTitle("Copy link text"));
+            });
+
+            menu.addSeparator();
+        }
+
+        menu.addItem(cb => cb
+            .setTitle("Open Developer Tools")
+            .onClick(e => {
+                const rect = (e.target as HTMLElement).getBoundingClientRect();
+                this.webview.inspectElement(rect.left, rect.top);
+            }));
+
+        menu.showAtPosition({
+            x: ctx.params.x,
+            y: ctx.params.y
+        });
     }
 
     didNavigate(url: string) {
@@ -81,9 +140,20 @@ export default class BrowserView extends ItemView implements BrowserViewState {
         this.navigate(url, false);
         
         this.setState({ url }, { history: true });
+
     }
 
     buildHeader(container: HTMLElement) {
+        const nav = container.parentElement?.querySelector(".view-header-nav-buttons");
+
+        if (nav) {
+            this.back = nav.querySelector(":first-child")!;
+            this.fwd = nav.querySelector(":last-child")!;
+
+            this.back.addEventListener('click', _ => this.navigateBack());
+            this.fwd.addEventListener('click', _ => this.navigateFwd());
+        }
+
         const url_bar = document.createElement("div");
         url_bar.addClass("search-input-container");
         url_bar.addClass("url-bar");
@@ -150,6 +220,34 @@ export default class BrowserView extends ItemView implements BrowserViewState {
         this.pretty.createSpan({ text: url.pathname, cls: ['url-part', 'path'] });
         this.pretty.createSpan({ text: url.search.slice(1), cls: ['url-part', 'query'] });
         this.pretty.createSpan({ text: url.hash.slice(1), cls: ['url-part', 'hash'] });
+
+        this.bindNavigationButtons();
+    }
+
+    navigateBack() {
+        if (this.webview.canGoBack())
+            this.webview.goBack();
+
+        this.bindNavigationButtons();
+    }
+
+    navigateFwd() {
+        if (this.webview.canGoForward())
+            this.webview.goForward();
+
+        this.bindNavigationButtons();
+    }
+
+    bindNavigationButtons() {
+        if (this.webview.canGoBack())
+            this.back.setAttribute('aria-disabled', 'false');
+        else
+            this.back.setAttribute('aria-disabled', 'true');
+
+        if (this.webview.canGoForward())
+            this.fwd.setAttribute('aria-disabled', 'false');
+        else
+            this.fwd.setAttribute('aria-disabled', 'true');
     }
 
     onPaneMenu(menu: Menu, source: "more-options" | "tab-header" | string): void {
