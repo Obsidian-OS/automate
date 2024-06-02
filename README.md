@@ -19,6 +19,7 @@ The following features are implemented/planned:
 - [ ] Set default browser
 - [ ] History navigation
 - [ ] Action context menu
+- [ ] Loading indicator
 
 ## Building
 
