@@ -92,4 +92,5 @@
     max-width: 16px;
     max-height: 16px;
     margin: 0 0.3em;
+    color: var(--text-normal);
 }
