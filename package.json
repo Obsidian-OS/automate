@@ -8,7 +8,14 @@
         "chalk": "latest"
     },
     "scripts": {
-        "build": "mkjson build/\\* install"
+	"build:plugin": "esbuild src/main.ts --outdir=build --bundle --sourcemap --platform=node --format=cjs --external:obsidian --external:electron",
+	"build:package.json": "cat package.json | jq -r '. *  .deploy * {deploy:null} | with_entries(select(.value |. != null))' > build/package.json",
+	"build:manifest.json": "cat manifest.json | jq -r '.' > build/manifest.json",
+	"build:styles.css": "esbuild styles.css --outdir=build --bundle",
+        "phony:mkjson": "mkjson build/\\* install",
+	"phony:install": "cp -r $PWD/build \"$vault_dir/.obsidian/plugins/$(cat package.json | jq -r '.name')\"",
+	"phony:clean": "rm -rf build target node_modules *lock* *yarn* *pnpm*",
+	"build": "cat package.json | jq -r '.scripts | keys_unsorted[] | select(. | startswith(\"build:\"))' | xargs -d \\\\n -I {} $npm_execpath run {}"
     },
     "devDependencies": {
         "@types/node": "latest",
