@@ -13,7 +13,8 @@
         "resolveJsonModule": true,
         "forceConsistentCasingInFileNames": true,
         "importHelpers": true,
-        "strict": true,
+        "jsx": "react-jsx",
+        "strict": true
     },
     "exclude": [
         "build"

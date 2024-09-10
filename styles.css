@@ -1,96 +1,27 @@
-.browser-tab-webview, .browser-tab-container {
-    padding: 0 !important;
-    overflow: hidden !important;
-}
-.browser-tab-container {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
+details summary > :is(h1, h2, h3, h4, h5, h6) {
+    display: inline-block;
 }
 
-.browser-navigation {
+.list-box {
+    padding: var(--size-2-1) 0;
+}
+
+.list-item {
+    display: block;
+    margin: 0 0;
+    padding: var(--size-2-1) var(--size-4-2);
+    font-size: var(--font-ui-smaller);
+}
+
+.list-item:focus, .list-item.active {
+    background: var(--text-selection);
+}
+
+.task-picker {
     display: flex;
     flex-direction: row;
 }
 
-.browser-tab-webview {
-    width: 100%;
-    height: 100%;
-}
-
-.url-bar {
-    flex: 1;
-    
-    transition: opacity 0.2s;
-
-    display: grid;
-    grid-template-rows: auto;
-    grid-template-columns: 1fr;
-
-    grid-template-areas: 'url-bar';
-}
-
-.url-bar input {
-    grid-area: url-bar;
-    color: inherit !important;
-
-    opacity: 0;
-}
-
-.url-bar .pretty-container {
-    grid-area: url-bar;
-    pointer-events: none;
-    opacity: 1;
-    display: flex;
-    align-items: center;
-    font: inherit;
-    font-size: var(--font-ui-small);
-    padding: 0 36px;
-    color: var(--text-faint);
-    flex-wrap: nowrap;
-    overflow: hidden;
-    max-width: 100%;
-}
-
-.url-bar:is(:active, :focus, :focus-within) input { opacity: 1; }
-.url-bar:is(:active, :focus, :focus-within) .pretty-container { opacity: 0; }
-
-.pretty-container > * {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.pretty-container .proto {
-    display: none;
-}
-.pretty-container .domain {
-    color: var(--text-normal);
-    min-width: fit-content;
-}
-.pretty-container .path {
-    color: var(--text-faint);
-    flex: 1;
-    min-width: fit-content;
-}
-.pretty-container .query, .pretty-container .hash {
-    font-size: var(--font-ui-smaller);
-    color: var(--text-faint)
-}
-
-.pretty-container .query:before {
-    content: '?';
-    padding: 0 4px;
-}
-
-.pretty-container .hash:before {
-    content: '#';
-    padding: 0 4px;
-}
-
-.favicon {
-    max-width: 16px;
-    max-height: 16px;
-    margin: 0 0.3em;
-    color: var(--text-normal);
+.task-settings {
+    padding: 0 var(--size-4-4);
 }
