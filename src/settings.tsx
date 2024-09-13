@@ -50,14 +50,36 @@ function Settings(props: { tab: SettingsTab }) {
 
     React.useEffect(() => { props.tab.settings.tasks = tasks }, [tasks]);
 
+    const addTask = () => setTasks(prev => [...prev, { 
+        label: `New Task (${prev.length})`,
+        before: [],
+        after: [],
+        triggers: [],
+        steps: []
+    }]);
+
     return <div>
         <h1>{"Tasks"}</h1>
 
-        <Setting title="Add new Task" buttonText="Add" onClick={() => setTasks(prev => [...prev, { label: `New Task (${prev.length})` }])} />
+        <Setting title="Add new Task" buttonText="Add" onClick={() => addTask()} />
 
         <div className="task-picker">
-            <ListBox items={tasks.map(i => i.label)} onSelect={(label: string, index: number) => setState({ selectedTask: index }) }/>
-            {tasks[state.selectedTask] ? <TaskSetting task={tasks[state.selectedTask]} /> : null }
+            <ListBox items={tasks.map(i => i.label)} onSelect={(label: string, index: number) => setState({ selectedTask: index }) } controls={{
+                onSwap(i, j) {
+                    if (i != j && j >= 0 && i >= 0 && i < tasks.length && j < tasks.length) {
+                        setTasks(prev => prev.with(i, prev[j]).with(j, prev[i]));
+                        return true;
+                    }
+                    return false;
+                },
+                onAdd() {
+                    addTask()
+                },
+                onDelete(i) {
+                    setTasks(prev => [...prev.slice(0, i), ...prev.slice(i + 1)])
+                }
+            }}/>
+            {tasks[state.selectedTask] ? <TaskSetting task={tasks[state.selectedTask]} taskList={tasks} /> : null}
         </div>
     </div>;
 }

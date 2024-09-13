@@ -17,6 +17,10 @@ details summary > :is(h1, h2, h3, h4, h5, h6) {
     background: var(--text-selection);
 }
 
+.list-box:focus .list-item:focus, .list-box:focus .list-item.active {
+    background: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+}
+
 .task-picker {
     display: flex;
     flex-direction: row;
@@ -24,4 +28,8 @@ details summary > :is(h1, h2, h3, h4, h5, h6) {
 
 .task-settings {
     padding: 0 var(--size-4-4);
+}
+
+button.icon-button {
+    padding: var(--size-4-2);
 }

@@ -7,7 +7,8 @@
         "@j-cake/jcake-utils": "latest",
         "chalk": "latest",
         "react": "latest",
-        "react-dom": "latest"
+        "react-dom": "latest",
+        "lucide-react": "latest"
     },
     "scripts": {
 	    "build:plugin": "esbuild src/main.ts --outdir=build --bundle --sourcemap --platform=node --format=cjs --external:obsidian --external:electron",
