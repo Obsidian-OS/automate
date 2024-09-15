@@ -1,7 +1,8 @@
 import React from "react";
 import * as obs from "obsidian";
+import Runner from "../main.js";
 
-type types = Button | Line;
+type types = Button | Line | Dropdown;
 
 type Button = { buttonText: string, onClick: () => void };
 type Line = {
@@ -10,6 +11,10 @@ type Line = {
     value: string,
     placeholder?: string
 };
+type Dropdown = {
+    onChange: (value: string) => void,
+    options: Record<string, string>,
+}
 
 export function Setting(props: { title: string, description?: string } & types) {
     const ref = React.createRef<HTMLDivElement>();
@@ -37,6 +42,12 @@ export function Setting(props: { title: string, description?: string } & types) 
                                 props.onChange(value);
                         });
                 })
+
+        else if ("options" in props)
+            setting
+                .addDropdown(dropdown => dropdown
+                    .addOptions(props.options)
+                    .onChange(value => props.onChange(value)));
     }, []);
 
     return <div ref={ref}></div>;

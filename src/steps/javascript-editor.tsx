@@ -3,7 +3,7 @@ import {basicSetup} from "codemirror";
 import {EditorView} from '@codemirror/view';
 import {EditorState} from '@codemirror/state';
 import {javascript} from '@codemirror/lang-javascript';
-import {JavaScript} from "./task.js";
+import {JavaScript} from "../task.js";
 
 export default function JavaScriptEditor(props: { step: JavaScript }) {
     const editor = React.createRef<HTMLDivElement>();

@@ -48,24 +48,15 @@ function Settings(props: { tab: SettingsTab }) {
         steps: []
     }]);
 
-    return <div>
+    return <section>
         <h1>{"Tasks"}</h1>
 
-        <Setting title="Add new Task" buttonText="Add" onClick={() => addTask()}/>
-
-        <div className="task-picker list-box-container">
+        <div className="task-picker list-box-container task-runner-settings-container">
             <ListBox
                 controls={{
                     onSelect: index => setHighlighted(index),
                     onAdd: _ => addTask(),
                     onDelete: i => setTasks(prev => [...prev.slice(0, i), ...prev.slice(i + 1)]),
-                    onSwap(i, j) {
-                        if (i != j && j >= 0 && i >= 0 && i < tasks.length && j < tasks.length) {
-                            setTasks(prev => prev.with(i, prev[j]).with(j, prev[i]));
-                            return true;
-                        }
-                        return false;
-                    },
                 }}>
                 {tasks.map(i => i.label)}
             </ListBox>
@@ -73,5 +64,5 @@ function Settings(props: { tab: SettingsTab }) {
                 <TaskSetting task={tasks[highlighted]} taskList={tasks} key={`task-${highlighted}`}/>
             </> : null}
         </div>
-    </div>;
+    </section>;
 }

@@ -1,3 +1,94 @@
+.task-runner-settings-container {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    grid-template-rows: repeat(5, auto);
+
+    grid-template-areas:
+            'tasklist content content'
+            'tasklist content content'
+            'tasklist content content'
+            'tasklist content content'
+            'tasklist content content';
+}
+
+.task-runner-settings-container > .list-box {
+    grid-area: tasklist;
+    resize: horizontal;
+}
+
+.task-runner-settings-container > .list-box-viewport {
+    grid-area: content;
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-template-rows: subgrid;
+
+    grid-template-areas:
+            'taskname taskname'
+            'before   before'
+            'triggers triggers'
+            'steps    steps'
+            'after    after';
+}
+
+.task-runner-settings-container .task-name { grid-area: taskname; }
+.task-runner-settings-container .before { grid-area: before; }
+.task-runner-settings-container .triggers { grid-area: triggers; }
+.task-runner-settings-container .steps { grid-area: steps; }
+.task-runner-settings-container .after { grid-area: after; }
+
+.task-runner-settings-container .before,
+.task-runner-settings-container .triggers,
+.task-runner-settings-container .steps,
+.task-runner-settings-container .after {
+    border: var(--border-width) solid var(--color-base-25);
+    padding: var(--size-4-4) var(--size-4-2);
+    border-radius: var(--radius-m);
+    overflow: hidden;
+}
+
+.task-runner-settings-container .triggers,
+.task-runner-settings-container .steps {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-template-rows: auto 1fr;
+
+    gap: var(--size-4-2);
+
+    grid-template-areas:
+            'desc    desc'
+            'listbox editor';
+}
+
+.task-runner-settings-container .triggers > .description,
+.task-runner-settings-container .steps > .description {
+    grid-area: desc;
+}
+
+.task-runner-settings-container .triggers > .list-box,
+.task-runner-settings-container .steps > .list-box {
+    grid-area: listbox;
+}
+
+.task-runner-settings-container .triggers > .list-box-viewport,
+.task-runner-settings-container .steps > .list-box-viewport {
+    grid-area: editor;
+}
+
+.list-box-container {
+    gap: var(--size-2-2);
+}
+
+.task-runner-settings-container h5 {
+    margin: 0;
+    padding: 0;
+    font-size: var(--font-ui-larger);
+}
+.task-runner-settings-container p {
+    margin: 0;
+    padding: 0;
+    font-size: var(--font-ui-smaller);
+}
+
 details summary > :is(h1, h2, h3, h4, h5, h6) {
     display: inline-block;
 }
@@ -29,15 +120,6 @@ details summary > :is(h1, h2, h3, h4, h5, h6) {
 
 .list-box:focus .list-item:focus, .list-box:focus .list-item.active {
     background: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
-}
-
-.list-box-container {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    flex: 1;
-
-    gap: var(--size-4-4);
 }
 
 .list-box-viewport {

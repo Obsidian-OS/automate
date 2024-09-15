@@ -36,41 +36,43 @@ export default function ListBox(props: {
             "downarrow": e => setSelection({rel: 1}),
         } as Record<string, (e: React.KeyboardEvent) => void>)[e.key.toLowerCase() as string]?.(e)}>
 
-        {props.controls ? <div className={"list-box-controls"}>
-            {props.controls.onSwap ? <div className={"button-group"}>
-                <div className="icon-button"
-                     tabIndex={0}
-                     onClick={e => {
-                         props.controls?.onAdd!(e);
-                     }}>
+        <div className={"list-box-controls"}>
+            <div className={"button-group"}>
+                {props.controls.onAdd ? <div className="icon-button"
+                                             tabIndex={0}
+                                             onClick={e => {
+                                                 props.controls?.onAdd!(e);
+                                             }}>
                     <lucide.Plus size={14}/>
-                </div>
-                <div className="icon-button"
-                     tabIndex={0}
-                     onClick={() => {
-                         props.controls?.onDelete!(state.index);
-                     }}>
-                    <lucide.Minus size={14}/>
-                </div>
+                </div> : null}
 
-                <div className="icon-button"
-                     tabIndex={0}
-                     onClick={() => {
-                         if (props.controls?.onSwap!(state.index, state.index - 1))
-                             setSelection({rel: -1})
-                     }}>
-                    <lucide.ChevronUp size={14}/>
-                </div>
-                <div className="icon-button"
-                     tabIndex={0}
-                     onClick={() => {
-                         if (props.controls?.onSwap!(state.index, state.index + 1))
-                             setSelection({rel: 1})
-                     }}>
-                    <lucide.ChevronDown size={14}/>
-                </div>
-            </div> : null}
-        </div> : null}
+                {props.controls.onDelete ? <div className="icon-button"
+                                                tabIndex={0}
+                                                onClick={() => {
+                                                    props.controls?.onDelete!(state.index);
+                                                }}>
+                    <lucide.Minus size={14}/>
+                </div> : null}
+                {props.controls.onSwap ? <>
+                    <div className="icon-button"
+                         tabIndex={0}
+                         onClick={() => {
+                             if (props.controls?.onSwap!(state.index, state.index - 1))
+                                 setSelection({rel: -1})
+                         }}>
+                        <lucide.ChevronUp size={14}/>
+                    </div>
+                    <div className="icon-button"
+                         tabIndex={0}
+                         onClick={() => {
+                             if (props.controls?.onSwap!(state.index, state.index + 1))
+                                 setSelection({rel: 1})
+                         }}>
+                        <lucide.ChevronDown size={14}/>
+                    </div>
+                </> : null}
+            </div>
+        </div>
 
         {props.children.map((item, a) => <div
             key={`list-box-item-${a}`}

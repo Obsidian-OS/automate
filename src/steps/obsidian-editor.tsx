@@ -2,8 +2,8 @@ import React from 'react';
 import * as obs from 'obsidian';
 import * as icons from 'lucide-react';
 
-import {Step} from "./task.js";
-import Runner from "./main.js";
+import {Step} from "../task.js";
+import Runner from "../main.js";
 
 export default function ObsidianEditor(props: { step: Step }) {
     const [cmd, setCmd] = React.useState(props.step.command);

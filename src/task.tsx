@@ -3,11 +3,12 @@ import * as obs from "obsidian";
 import * as icons from 'lucide-react';
 
 import ListBox, {Controls} from "./components/listbox.js";
-import ShellTaskEditor from "./shell-editor.js";
-import JavaScriptEditor from "./javascript-editor.js";
-import ObsidianEditor from "./obsidian-editor.js";
-import TimerEditor from "./timer-editor.js";
-import ManualEditor from "./manual-editor.js";
+import ShellTaskEditor from "./steps/shell-editor.js";
+import JavaScriptEditor from "./steps/javascript-editor.js";
+import ObsidianEditor from "./steps/obsidian-editor.js";
+import TimerEditor from "./triggers/timer-editor.js";
+import ManualEditor from "./triggers/manual-editor.js";
+import ManualStepEditor from "./steps/manual-step-editor.js";
 
 export interface Task {
     label: string,
@@ -18,7 +19,7 @@ export interface Task {
 }
 
 export type Trigger = Timer | Manual;
-export type Step = ObsidianCommand | ShellCommand | JavaScript;
+export type Step = ObsidianCommand | ShellCommand | JavaScript | ManualStep;
 
 export type Timer = {
     type: "timer",
@@ -27,7 +28,6 @@ export type Timer = {
 
 export type Manual = {
     type: "manual",
-    command: string,
     name: string
 }
 
@@ -42,6 +42,10 @@ export type ShellCommand = {
 };
 export type JavaScript = {
     type: "javascript",
+    command: string
+}
+export type ManualStep = {
+    type: "manual",
     command: string
 }
 
@@ -59,73 +63,85 @@ export default function TaskSetting<Props extends { task: Task, taskList: Task[]
     const controls: SetState = {setHighlighted, setTask, task, taskList: props.taskList};
 
     return <div className="task-settings list-box-viewport">
-        <div className={"flex"}>
+        <div className={"flex task-name"}>
             <input className={"fill"}
                    type="text"
                    value={task.label}
                    onChange={e => setTask(prev => ({...prev, label: e.target.value}))}/>
         </div>
 
-        <details className="run-before list-box-container">
-            <summary><label>{"Run Before"}</label></summary>
+        <div className="before">
+            <h5>{"Run Before"}</h5>
 
             <ListBox controls={beforeEditor(controls)}>
-                {task.before.map(i => '') ?? []}
+                {task.before.map(i => <label>{i.label}</label>)}
             </ListBox>
-        </details>
+        </div>
 
         <div className="triggers">
-            <h1>{"Triggers"}</h1>
-            <div className="list-box-container">
-                <ListBox controls={triggerEditor(controls)}>
-                    {task.triggers.map(i => ({
-                        'timer': timer => <>{`Timer: ${timer.interval}s`}</>,
-                        'manual': manual => <>{`Manual Trigger: ${manual.command}`}</>
-                    } as { [Type in Trigger['type']]: (trigger: Trigger & { type: Type }) => React.ReactNode })[i.type](i as any))}
-                </ListBox>
-                {({
-                    'timer': trigger => <TimerEditor trigger={trigger} key={`timer-editor-${highlighted.trigger}`}/>,
-                    'manual': trigger => <ManualEditor trigger={trigger} key={`manual-editor-${highlighted.trigger}`}/>,
-                } as {
-                    [Type in Trigger['type']]: ((trigger: Trigger & {
-                        type: Type
-                    }) => React.ReactNode)
-                })[task.triggers[highlighted.trigger]?.type]?.(task.triggers[highlighted.trigger] as any) ?? null}
+            <div className={"description"}>
+                <h5>{"Triggers"}</h5>
+                <p className={"setting-item-description"}>{`How are tasks run. A task is run if any trigger fires.`}</p>
             </div>
+
+            <ListBox controls={triggerEditor(controls)}>
+                {task.triggers.map(i => ({
+                    'timer': timer => <>{`Timer: ${timer.interval}s`}</>,
+                    'manual': manual => <>{`Manual Trigger: ${manual.name}`}</>
+                } as {
+                    [Type in Trigger['type']]: (trigger: Trigger & {
+                        type: Type
+                    }) => React.ReactNode
+                })[i.type](i as any))}
+            </ListBox>
+
+            {({
+                'timer': trigger => <TimerEditor trigger={trigger} key={`timer-editor-${highlighted.trigger}`}/>,
+                'manual': trigger => <ManualEditor trigger={trigger} key={`manual-editor-${highlighted.trigger}`}/>,
+            } as {
+                [Type in Trigger['type']]: ((trigger: Trigger & {
+                    type: Type
+                }) => React.ReactNode)
+            })[task.triggers[highlighted.trigger]?.type]?.(task.triggers[highlighted.trigger] as any) ?? null}
         </div>
 
         <div className="steps">
-            <h1>{"Steps"}</h1>
-            <div className="list-box-container">
-                <ListBox controls={stepEditor(controls)}>
-                    {task.steps.map((i, a) => i.command.length > 0 ? <div className={"step-label"}>
-                        {{
-                            shell: <icons.Hash size={14}/>,
-                            javascript: <icons.Braces size={14}/>,
-                            obsidian: <icons.ChevronRight size={14}/>
-                        }[i.type]}
-                        {`${i.command.slice(0, 25)}${i.command.length > 25 ? '\u2026' : ''}`}
-                    </div> : <i key={`step-${a}`}>{'Empty'}</i>) ?? []}
-                </ListBox>
-                {({
-                    'shell': step => <ShellTaskEditor step={step} key={`shell-editor-step-${highlighted.step}`}/>,
-                    'obsidian': step => <ObsidianEditor step={step} key={`obsidian-editor-step-${highlighted.step}`}/>,
-                    'javascript': step => <JavaScriptEditor step={step} key={`js-editor-step-${highlighted.step}`}/>,
-                } as {
-                    [Type in Step['type']]: ((step: Step & {
-                        type: Type
-                    }) => React.ReactNode)
-                })[task.steps[highlighted.step]?.type]?.(task.steps[highlighted.step] as any) ?? null}
+            <div className={"description"}>
+                <h5>{"Steps"}</h5>
+                <p className={"setting-item-description"}>{`The 'Steps' section configures what is done after a trigger launches a task. These are run in the order they are specified in.`}</p>
             </div>
+
+            <ListBox controls={stepEditor(controls)}>
+                {task.steps.map((i, a) => i.command.length > 0 ? <div className={"step-label"}>
+                    {{
+                        shell: <icons.Hash size={14}/>,
+                        javascript: <icons.Braces size={14}/>,
+                        obsidian: <icons.ChevronRight size={14}/>,
+                        manual: <icons.Play size={14}/>,
+                    }[i.type]}
+                    {`${i.command.slice(0, 25)}${i.command.length > 25 ? '\u2026' : ''}`}
+                </div> : <i key={`step-${a}`}>{'Empty'}</i>) ?? []}
+            </ListBox>
+
+            {({
+                'shell': step => <ShellTaskEditor step={step} key={`shell-editor-step-${highlighted.step}`}/>,
+                'obsidian': step => <ObsidianEditor step={step} key={`obsidian-editor-step-${highlighted.step}`}/>,
+                'javascript': step => <JavaScriptEditor step={step} key={`js-editor-step-${highlighted.step}`}/>,
+                'manual': step => <ManualStepEditor step={step} key={`manual-step-editor-step-${highlighted.step}`}/>,
+            } as {
+                [Type in Step['type']]: ((step: Step & {
+                    type: Type
+                }) => React.ReactNode)
+            })[task.steps[highlighted.step]?.type]?.(task.steps[highlighted.step] as any) ?? null}
         </div>
 
-        <details className="run-after">
-            <summary><label>{"Run After"}</label></summary>
+        <div className="after">
+            <h5>{"Run After"}</h5>
 
             <ListBox controls={afterEditor(controls)}>
-                {task.after.map(i => '') ?? []}
+                {task.after.map(i => <label>{i.label}</label>)}
             </ListBox>
-        </details>
+        </div>
     </div>;
 }
 
@@ -192,22 +208,11 @@ const triggerEditor = ({task, setTask, setHighlighted}: SetState): Controls => (
                 ...prev,
                 triggers: [...prev.triggers, {
                     type: 'manual',
-                    command: '',
                     name: ''
                 }] // TODO: Select object
             }))));
 
         menu.showAtMouseEvent(e.nativeEvent);
-    },
-    onSwap(i, j) {
-        if (!(i != j && j >= 0 && i >= 0 && i < task.triggers.length && j < task.triggers.length)) return false;
-
-        setTask(prev => ({
-            ...prev,
-            triggers: prev.triggers.with(i, prev.triggers[j]).with(j, prev.triggers[i])
-        }));
-
-        return true;
     }
 })
 const stepEditor = ({task, setTask, setHighlighted}: SetState): Controls => ({
@@ -225,6 +230,16 @@ const stepEditor = ({task, setTask, setHighlighted}: SetState): Controls => ({
                 ...prev,
                 steps: [...prev.steps, {
                     type: "obsidian",
+                    command: ""
+                }]
+            }))));
+
+        menu.addItem(item => item
+            .setTitle("Manual Trigger")
+            .onClick(_ => setTask(prev => ({
+                ...prev,
+                steps: [...prev.steps, {
+                    type: "manual",
                     command: ""
                 }]
             }))));
@@ -263,11 +278,7 @@ const stepEditor = ({task, setTask, setHighlighted}: SetState): Controls => ({
         return true;
     }
 })
-const afterEditor = ({setTask, task, taskList}: {
-    setTask: React.Dispatch<React.SetStateAction<Task>>,
-    task: Task,
-    taskList: Task[]
-}): Controls => ({
+const afterEditor = ({setTask, task, taskList}: SetState): Controls => ({
     onSwap(i, j) {
         if (i != j && j >= 0 && i >= 0 && i < task.after.length && j < task.after.length) {
             task.after = task.after.with(i, task.after[j]).with(j, task.after[i]);

@@ -1,5 +1,5 @@
 import React from "react";
-import {ShellCommand} from "./task.js";
+import {ShellCommand} from "../task.js";
 
 export default function ShellTaskEditor(props: { step: ShellCommand }) {
     const [step, setStep] = React.useState(props.step);
