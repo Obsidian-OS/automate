@@ -1,34 +1,30 @@
 {
     "name": "taskrunner",
-    "main": "./build/index.js",
+    "build": "./build.js",
     "version": "0.1.0",
     "type": "module",
     "dependencies": {
+        "@codemirror/lang-javascript": "latest",
+        "@codemirror/state": "^6.4.1",
+        "@codemirror/view": "^6.33.0",
         "@j-cake/jcake-utils": "latest",
         "chalk": "latest",
+        "codemirror": "latest",
+        "lucide-react": "latest",
         "react": "latest",
-        "react-dom": "latest",
-        "lucide-react": "latest"
+        "react-dom": "latest"
     },
     "scripts": {
-	    "build:plugin": "esbuild src/main.ts --outdir=build --bundle --sourcemap --platform=node --format=cjs --external:obsidian --external:electron",
-	    "build:package.json": "cat package.json | jq -r '. *  .deploy * {deploy:null} | with_entries(select(.value |. != null))' > build/package.json",
-	    "build:manifest.json": "cat manifest.json | jq -r '.' > build/manifest.json",
-	    "build:styles.css": "esbuild styles.css --outdir=build --bundle",
-        "phony:mkjson": "mkjson build/\\* install",
-	    "phony:install": "cp -r $PWD/build \"$vault_dir/.obsidian/plugins/$(cat package.json | jq -r '.name')\"",
-	    "phony:clean": "rm -rf build target node_modules *lock* *yarn* *pnpm*",
-	    "build": "cat package.json | jq -r '.scripts | keys_unsorted[] | select(. | startswith(\"build:\"))' | xargs -d \\\\n -I {} $npm_execpath run {}"
+        "build": "build phony:all phony:install"
     },
     "devDependencies": {
         "@types/node": "latest",
-        "@j-cake/mkjson": "latest",
-        "electron": "latest",
-        "typescript": "latest",
-        "esbuild": "latest",
-		"obsidian": "latest",
         "@types/react": "latest",
-        "@types/react-dom": "latest"
+        "@types/react-dom": "latest",
+        "builder": "link:../../builder",
+        "electron": "latest",
+        "obsidian": "latest",
+        "typescript": "latest"
     },
     "imports": {
         "#app": "./build/index.js"

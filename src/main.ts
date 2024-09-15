@@ -1,25 +1,32 @@
-import { App, Plugin, Setting, Notice, PluginSettingTab, SettingTab } from 'obsidian';
+import {App, Plugin, PluginManifest, Command} from 'obsidian';
 
-import SettingsTab, { Settings, default_settings } from "./settings.js";
+import SettingsTab, {default_settings, Settings} from "./settings.js";
 
 export let app: App;
 
 export default class Runner extends Plugin {
-    settings: SettingTab | null = null;
+    settingsTab: SettingsTab | null = null;
+    settings: Settings = default_settings;
 
-    async onload() {
-        await this.loadSettings();
-        app = this.app;
-        this.addSettingTab(this.settings = new SettingsTab(this.app, this));
+    static app: () => App;
+
+    constructor(app: App, manifest: PluginManifest) {
+        super(app, manifest);
+
+        Runner.app = () => app;
     }
 
-    async loadSettings() {
-		this.settings?.load(await this.loadData());
-	}
+    async onload() {
+        app = this.app;
 
-	async saveSettings() {
-        await this.saveData(this.settings?.get());
-	}
+        this.settings = await this.loadData() ?? default_settings;
+
+        this.addSettingTab(this.settingsTab = new SettingsTab(this.app, this));
+    }
+
+    async onunload() {
+        await this.saveData(this.settings);
+    }
 }
 
 

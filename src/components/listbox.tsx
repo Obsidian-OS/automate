@@ -1,68 +1,83 @@
-import React, * as react from "react";
+import React from "react";
 import * as lucide from "lucide-react";
 
-interface Controls {
+export interface Controls {
     onAdd?: (e: React.MouseEvent) => void,
     onDelete?: (item: number) => void,
-    onSwap?: (item: number, item2: number) => boolean 
+    onSwap?: (item: number, item2: number) => boolean,
+    onSelect?: (index: number) => void,
 }
 
-export default function ListBox<T extends { toString(): string }>(props: { 
-    items: T[], 
-    onSelect?: (label: string, index: number) => void,
-    controls?: Controls
+export default function ListBox(props: {
+    children: React.ReactNode[],
+    controls: Controls
 }) {
     const [state, setState] = React.useState({
         index: 0,
-        refs: props.items?.map(_ => React.createRef<HTMLDivElement>()) ?? []
+        refs: props.children?.map(_ => React.createRef<HTMLDivElement>()) ?? []
     });
 
-    React.useEffect(() => {
-        if (props.onSelect)
-            props.onSelect(props.items[state.index]?.toString(), state.index)
-    }, [state.index]);
+    const setSelection = (move: { rel: number } | { abs: number }) => {
+        const index = 'rel' in move ? (props.children.length + state.index + move.rel) % props.children.length : move.abs % props.children.length;
 
-    return <div 
-        className="list-box" 
-        tabIndex={0} 
+        setState(prev => ({
+            ...prev,
+            index
+        }));
+
+        props.controls.onSelect?.(index);
+    };
+
+    return <div
+        className="list-box"
+        tabIndex={0}
         onKeyUp={e => ({
-            "uparrow": e => setState(prev => ({ ...prev, index: (prev.index + props.items.length - 2) % props.items.length })),
-            "downarrow": e => setState(prev => ({ ...prev, index: (prev.index + 1) % props.items.length }))
-        } as Record<string, (e: React.KeyboardEvent) => void>)[e.key.toLowerCase() as string]?.(e) }>
+            "uparrow": e => setSelection({rel: -1}),
+            "downarrow": e => setSelection({rel: 1}),
+        } as Record<string, (e: React.KeyboardEvent) => void>)[e.key.toLowerCase() as string]?.(e)}>
 
         {props.controls ? <div className={"list-box-controls"}>
-            {props.controls.onSwap ? <>
-                <button className="icon-button" onClick={e => {
-                    props.controls?.onAdd!(e);
-                }}>
-                    <lucide.Plus size={14}/> 
-                </button>
-                <button className="icon-button" onClick={() => {
-                    props.controls?.onDelete!(state.index);
-                }}>
-                    <lucide.Minus size={14} />
-                </button>
+            {props.controls.onSwap ? <div className={"button-group"}>
+                <div className="icon-button"
+                     tabIndex={0}
+                     onClick={e => {
+                         props.controls?.onAdd!(e);
+                     }}>
+                    <lucide.Plus size={14}/>
+                </div>
+                <div className="icon-button"
+                     tabIndex={0}
+                     onClick={() => {
+                         props.controls?.onDelete!(state.index);
+                     }}>
+                    <lucide.Minus size={14}/>
+                </div>
 
-                <button className="icon-button" onClick={() => {
-                    if (props.controls?.onSwap!(state.index, state.index - 1))
-                        setState(prev => ({ ...prev, index: state.index - 1 }));
-                }}>
-                    <lucide.ChevronUp size={14} /> 
-                </button>
-                <button className="icon-button" onClick={() => {
-                    if (props.controls?.onSwap!(state.index, state.index + 1))
-                        setState(prev => ({ ...prev, index: prev.index + 1 }));
-                }}>
-                    <lucide.ChevronDown size={14} />
-                </button>
-            </> : null}
+                <div className="icon-button"
+                     tabIndex={0}
+                     onClick={() => {
+                         if (props.controls?.onSwap!(state.index, state.index - 1))
+                             setSelection({rel: -1})
+                     }}>
+                    <lucide.ChevronUp size={14}/>
+                </div>
+                <div className="icon-button"
+                     tabIndex={0}
+                     onClick={() => {
+                         if (props.controls?.onSwap!(state.index, state.index + 1))
+                             setSelection({rel: 1})
+                     }}>
+                    <lucide.ChevronDown size={14}/>
+                </div>
+            </div> : null}
         </div> : null}
 
-        {props.items.map((item, a) => <div 
+        {props.children.map((item, a) => <div
+            key={`list-box-item-${a}`}
             className={`list-item${state.index == a ? " active" : ""}`}
-            ref={state.refs[a] } 
-            onClick={_ => setState(prev => ({ ...prev, index: a }))}>
-                <label>{item.toString()}</label>
+            ref={state.refs[a]}
+            onClick={_ => setSelection({abs: a})}>
+            <label>{item}</label>
         </div>)}
 
     </div>
