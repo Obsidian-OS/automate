@@ -13,7 +13,7 @@ export default function ManualStepEditor(props: { step: ManualStep }) {
         <h2>{"Manual Trigger"}</h2>
         <Setting title={"Trigger"}
                  description={"Which trigger to run"}
-                 options={Object.fromEntries(Runner.instance().getTriggers().map(i => [i.name, i.name]))}
+                 options={Object.fromEntries(Runner.instance().getManualTriggers().map(i => [i.name, i.name]))}
                  onChange={trigger => setTrigger(prev => ({...prev, command: trigger}))}/>
     </div>
 }

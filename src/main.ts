@@ -1,14 +1,20 @@
 import * as vm from 'node:vm';
-import {App, FuzzySuggestModal, Notice, Plugin, PluginManifest} from 'obsidian';
+import * as cp from 'node:child_process';
+import { iter } from '@j-cake/jcake-utils/iter';
+import { App, FuzzySuggestModal, Notice, Plugin, PluginManifest } from 'obsidian';
 
-import SettingsTab, {default_settings, Settings} from "./settings.js";
-import {JavaScript, Manual, Step, Task} from "./task.js";
+import SettingsTab, { default_settings, Settings } from "./settings.js";
+import { JavaScript, Manual, ShellCommand, Step, Task, Trigger, VaultEvent } from "./task.js";
+import { clearInterval } from 'node:timers';
 
 export let app: App;
 
 export default class Runner extends Plugin {
     settingsTab: SettingsTab | null = null;
     settings: Settings = default_settings;
+
+    private listeners: (() => void)[] = [];
+    private timers: (() => void)[] = [];
 
     static app: () => App;
     static instance: () => Runner;
@@ -28,13 +34,21 @@ export default class Runner extends Plugin {
         this.addCommand({
             name: "Trigger Task",
             id: "triggerTask",
-            callback: () => new TaskList(app, this, trigger => this.trigger(trigger)).open()
+            callback: () => new TaskList(app, this, trigger => this.activateManualTrigger(trigger)).open()
         })
 
         this.addSettingTab(this.settingsTab = new SettingsTab(this.app, this));
+
+        this.updateListeners();
     }
 
-    trigger(name: string) {
+    activateTrigger<Params extends any[]>(trigger: Trigger, params: Params) {
+        for (const task of this.settings.tasks)
+            if (task.triggers.includes(trigger))
+                this.runTask(task);
+    }
+
+    activateManualTrigger(name: string) {
         for (const task of this.settings.tasks)
             if (task.triggers.some(i => i.type == "manual" && i.name.toLowerCase() == name.toLowerCase()))
                 this.runTask(task);
@@ -47,9 +61,9 @@ export default class Runner extends Plugin {
         for (const step of task.steps)
             await ({
                 obsidian: async step => (this.app as any as { commands: { executeCommandById(id: string): void } }).commands.executeCommandById(step.command),
-                manual: async step => this.trigger(step.command),
+                manual: async step => this.activateManualTrigger(step.command),
                 javascript: async step => this.runJavascriptFragment(step),
-                shell: async step => void new Notice("Shell steps not implemented yet")
+                shell: async step => this.runShell(step)
             } as { [Type in Step['type']]: (step: Step & { type: Type }) => Promise<void> })[step.type](step as any);
 
         for (const before of task.before)
@@ -60,14 +74,19 @@ export default class Runner extends Plugin {
         await this.saveData(this.settings);
     }
 
-    public getTriggers(): Manual[] {
-        const triggers: Manual[] = [];
-
-        for (const trigger of this.settings.tasks
+    public getTriggersOfType<Type extends Trigger['type'], R extends Trigger & { type: Type }>(type: Type): R[] {
+        return this
+            .settings
+            .tasks
             .map(i => i.triggers)
             .flat()
-            .filter(i => i.type == "manual") as Manual[])
+            .filter(i => i.type == type) as R[];
+    }
 
+    public getManualTriggers(): Manual[] {
+        const triggers: Manual[] = [];
+
+        for (const trigger of this.getTriggersOfType('manual'))
             if (!triggers.some(i => i.name.toLowerCase() == trigger.name.toLowerCase()))
                 triggers.push(trigger);
 
@@ -85,6 +104,44 @@ export default class Runner extends Plugin {
         } else
             new Function('require', step.command)(require);
     }
+
+    async runShell(step: ShellCommand) {
+        const proc = cp.spawn(step.command, {
+            shell: true,
+            stdio: ['pipe', 'pipe', 'inherit'],
+            windowsHide: true
+        });
+
+        const stdout = iter.collect(proc.stdout);
+        return await new Promise((ok, err) => proc.on('exit', async code => code == 0 ? ok(await stdout) : err));
+    }
+
+    updateListeners() {
+        for (const unbind of this.listeners.splice(0, this.listeners.length))
+            unbind();
+
+        for (const timer of this.timers.splice(0, this.timers.length))
+            timer();
+
+        for (const trigger of this.getTriggersOfType('event')) {
+            const callback = (...params: any[]) => this.activateTrigger(trigger, params);
+            const object: {
+                on(event: string, callback: (...args: any[]) => void): void,
+                off(event: string, callback: (...args: any[]) => void): void,
+            } = {
+                vault: this.app.vault,
+                workspace: this.app.workspace
+            }[trigger.object];
+
+            object.on(trigger.event, callback);
+            this.listeners.push(() => object.off(trigger.event, callback));
+        }
+
+        for (const timer of this.getTriggersOfType("timer")) {
+            const interval = setInterval(() => this.activateTrigger(timer, []), timer.interval * 1000);
+            this.timers.push(() => clearInterval(interval));
+        }
+    }
 }
 
 export class TaskList extends FuzzySuggestModal<Manual> {
@@ -95,7 +152,7 @@ export class TaskList extends FuzzySuggestModal<Manual> {
     }
 
     getItems(): Manual[] {
-        return this.plugin.getTriggers();
+        return this.plugin.getManualTriggers();
     }
 
     getItemText(item: Manual): string {

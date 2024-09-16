@@ -5,7 +5,6 @@ import * as obs from "obsidian";
 import Runner from "./main.js";
 import TaskSetting, {Task} from "./task.js";
 import ListBox from "./components/listbox.js";
-import {Setting} from "./components/setting.js";
 
 export interface Settings {
     tasks: Task[]
@@ -39,6 +38,7 @@ function Settings(props: { tab: SettingsTab }) {
     const [highlighted, setHighlighted] = React.useState(0)
 
     React.useEffect(() => void Object.assign(props.tab.plugin.settings, {tasks}), [tasks]);
+    React.useEffect(() => Runner.instance().updateListeners(), [tasks]);
 
     const addTask = () => setTasks(prev => [...prev, {
         label: `New Task (${prev.length})`,

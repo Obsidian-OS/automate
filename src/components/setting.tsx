@@ -1,8 +1,7 @@
 import React from "react";
 import * as obs from "obsidian";
-import Runner from "../main.js";
 
-type types = Button | Line | Dropdown;
+type types = Button | Line | Dropdown | Toggle;
 
 type Button = { buttonText: string, onClick: () => void };
 type Line = {
@@ -14,7 +13,12 @@ type Line = {
 type Dropdown = {
     onChange: (value: string) => void,
     options: Record<string, string>,
-}
+    value: string,
+};
+type Toggle = {
+    onChange: (checked: boolean) => void,
+    checked: boolean,
+};
 
 export function Setting(props: { title: string, description?: string } & types) {
     const ref = React.createRef<HTMLDivElement>();
@@ -47,7 +51,14 @@ export function Setting(props: { title: string, description?: string } & types) 
             setting
                 .addDropdown(dropdown => dropdown
                     .addOptions(props.options)
+                    .setValue(props.value)
                     .onChange(value => props.onChange(value)));
+
+        else if ("checked" in props)
+            setting
+                .addToggle(toggle => toggle
+                    .setValue(props.checked)
+                    .onChange(checked => props.onChange(checked)));
     }, []);
 
     return <div ref={ref}></div>;

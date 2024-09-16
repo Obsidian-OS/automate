@@ -9,7 +9,7 @@ import ObsidianEditor from "./steps/obsidian-editor.js";
 import TimerEditor from "./triggers/timer-editor.js";
 import ManualEditor from "./triggers/manual-editor.js";
 import ManualStepEditor from "./steps/manual-step-editor.js";
-import VaultEventEditor from "./triggers/vaullt-event-editor.js";
+import EventEditor from "./triggers/event-editor.js";
 
 export interface Task {
     label: string,
@@ -28,9 +28,14 @@ export type Timer = {
 };
 
 export type VaultEvent = {
-    type: "vault",
-    event: 'create' | 'modify' | 'delete' | 'rename' | 'closed'
-};
+    type: "event",
+} & ({
+    object: 'vault',
+    event: 'create' | 'modify' | 'delete' | 'rename'
+} | {
+    object: 'workspace',
+    event: 'quick-preview' | 'resize' | 'active-leaf-change' | 'file-open' | 'layout-change' | 'window-open' | 'window-close' | 'css-change' | 'file-menu' | 'files-menu' | 'url-menu' | 'editor-menu' | 'editor-change' | 'editor-paste' | 'editor-drop' | 'quit',
+});
 
 export type Manual = {
     type: "manual",
@@ -44,11 +49,13 @@ export type ObsidianCommand = {
 export type ShellCommand = {
     type: "shell",
     command: string,
-    env: Record<string, string>
+    env: Record<string, string>,
+    breakOnNonZero: boolean
 };
 export type JavaScript = {
     type: "javascript",
-    command: string
+    command: string,
+    breakOnError: boolean
 }
 export type ManualStep = {
     type: "manual",
@@ -91,10 +98,19 @@ export default function TaskSetting<Props extends { task: Task, taskList: Task[]
             </div>
 
             <ListBox controls={triggerEditor(controls)}>
-                {task.triggers.map(i => ({
-                    'timer': timer => <>{`Timer: ${timer.interval}s`}</>,
-                    'vault': event => <>{`Vault Event: ${event.event}`}</>,
-                    'manual': manual => <>{`Manual Trigger: ${manual.name}`}</>
+                {task.triggers.map((i, a) => ({
+                    'timer': timer => <div className="step-label" key={`trigger-${a}`}>
+                        <icons.Timer size={14}/>
+                        {`${timer.interval}s`}
+                    </div>,
+                    'event': event => <div className="step-label"key={`trigger-${a}`}>
+                        <icons.Info size={14}/>
+                        {event.event}
+                    </div>,
+                    'manual': manual => <div className="step-label"key={`trigger-${a}`}>
+                        <icons.Play size={14}/>
+                        {manual.name}
+                    </div>
                 } as {
                     [Type in Trigger['type']]: (trigger: Trigger & {
                         type: Type
@@ -104,7 +120,7 @@ export default function TaskSetting<Props extends { task: Task, taskList: Task[]
 
             {({
                 'timer': trigger => <TimerEditor trigger={trigger} key={`timer-editor-${highlighted.trigger}`}/>,
-                'vault': trigger => <VaultEventEditor trigger={trigger} key={`vault-event-editor-${highlighted.trigger}`}/>,
+                'event': trigger => <EventEditor trigger={trigger} key={`event-editor-${highlighted.trigger}`}/>,
                 'manual': trigger => <ManualEditor trigger={trigger} key={`manual-editor-${highlighted.trigger}`}/>,
             } as {
                 [Type in Trigger['type']]: ((trigger: Trigger & {
@@ -120,7 +136,7 @@ export default function TaskSetting<Props extends { task: Task, taskList: Task[]
             </div>
 
             <ListBox controls={stepEditor(controls)}>
-                {task.steps.map((i, a) => i.command.length > 0 ? <div className={"step-label"}>
+                {task.steps.map((i, a) => i.command.length > 0 ? <div className={"step-label"} key={`step-${a}`}>
                     {{
                         shell: <icons.Hash size={14}/>,
                         javascript: <icons.Braces size={14}/>,
@@ -202,6 +218,7 @@ const triggerEditor = ({task, setTask, setHighlighted}: SetState): Controls => (
 
         menu.addItem(item => item
             .setTitle("Timer")
+            .setIcon("timer")
             .onClick(_ => setTask(prev => ({
                 ...prev,
                 triggers: [...prev.triggers, {
@@ -211,17 +228,20 @@ const triggerEditor = ({task, setTask, setHighlighted}: SetState): Controls => (
             }))));
 
         menu.addItem(item => item
-            .setTitle("Vault Event")
+            .setTitle("Event")
+            .setIcon("info")
             .onClick(_ => setTask(prev => ({
                 ...prev,
                 triggers: [...prev.triggers, {
-                    type: 'vault',
+                    type: 'event',
+                    object: 'vault',
                     event: 'modify'
                 }] // TODO: Select object
             }))));
 
         menu.addItem(item => item
             .setTitle("Manual")
+            .setIcon("play")
             .onClick(_ => setTask(prev => ({
                 ...prev,
                 triggers: [...prev.triggers, {
@@ -244,6 +264,7 @@ const stepEditor = ({task, setTask, setHighlighted}: SetState): Controls => ({
 
         menu.addItem(item => item
             .setTitle("Obsidian Command")
+            .setIcon("chevron-right")
             .onClick(_ => setTask(prev => ({
                 ...prev,
                 steps: [...prev.steps, {
@@ -254,6 +275,7 @@ const stepEditor = ({task, setTask, setHighlighted}: SetState): Controls => ({
 
         menu.addItem(item => item
             .setTitle("Manual Trigger")
+            .setIcon("play")
             .onClick(_ => setTask(prev => ({
                 ...prev,
                 steps: [...prev.steps, {
@@ -264,22 +286,26 @@ const stepEditor = ({task, setTask, setHighlighted}: SetState): Controls => ({
 
         menu.addItem(item => item
             .setTitle("Shell Command")
+            .setIcon("hash")
             .onClick(_ => setTask(prev => ({
                 ...prev,
                 steps: [...prev.steps, {
                     type: 'shell',
                     command: "",
-                    env: {}
+                    env: {},
+                    breakOnNonZero: true,
                 }]
             }))));
 
         menu.addItem(item => item
             .setTitle("JavaScript")
+            .setIcon("braces")
             .onClick(_ => setTask(prev => ({
                 ...prev,
                 steps: [...prev.steps, {
                     type: 'javascript',
                     command: "",
+                    breakOnError: true
                 }]
             }))));
 
