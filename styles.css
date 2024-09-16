@@ -40,7 +40,7 @@
 .task-runner-settings-container .triggers,
 .task-runner-settings-container .steps,
 .task-runner-settings-container .after {
-    border: var(--border-width) solid var(--color-base-25);
+    border: var(--input-border-width) solid var(--background-modifier-border);
     padding: var(--size-4-4) var(--size-4-2);
     border-radius: var(--radius-m);
     overflow: hidden;

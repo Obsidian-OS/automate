@@ -9,6 +9,7 @@ import ObsidianEditor from "./steps/obsidian-editor.js";
 import TimerEditor from "./triggers/timer-editor.js";
 import ManualEditor from "./triggers/manual-editor.js";
 import ManualStepEditor from "./steps/manual-step-editor.js";
+import VaultEventEditor from "./triggers/vaullt-event-editor.js";
 
 export interface Task {
     label: string,
@@ -18,12 +19,17 @@ export interface Task {
     steps: Step[]
 }
 
-export type Trigger = Timer | Manual;
+export type Trigger = Timer | VaultEvent | Manual;
 export type Step = ObsidianCommand | ShellCommand | JavaScript | ManualStep;
 
 export type Timer = {
     type: "timer",
     interval: number,
+};
+
+export type VaultEvent = {
+    type: "vault",
+    event: 'create' | 'modify' | 'delete' | 'rename' | 'closed'
 };
 
 export type Manual = {
@@ -87,6 +93,7 @@ export default function TaskSetting<Props extends { task: Task, taskList: Task[]
             <ListBox controls={triggerEditor(controls)}>
                 {task.triggers.map(i => ({
                     'timer': timer => <>{`Timer: ${timer.interval}s`}</>,
+                    'vault': event => <>{`Vault Event: ${event.event}`}</>,
                     'manual': manual => <>{`Manual Trigger: ${manual.name}`}</>
                 } as {
                     [Type in Trigger['type']]: (trigger: Trigger & {
@@ -97,6 +104,7 @@ export default function TaskSetting<Props extends { task: Task, taskList: Task[]
 
             {({
                 'timer': trigger => <TimerEditor trigger={trigger} key={`timer-editor-${highlighted.trigger}`}/>,
+                'vault': trigger => <VaultEventEditor trigger={trigger} key={`vault-event-editor-${highlighted.trigger}`}/>,
                 'manual': trigger => <ManualEditor trigger={trigger} key={`manual-editor-${highlighted.trigger}`}/>,
             } as {
                 [Type in Trigger['type']]: ((trigger: Trigger & {
@@ -199,6 +207,16 @@ const triggerEditor = ({task, setTask, setHighlighted}: SetState): Controls => (
                 triggers: [...prev.triggers, {
                     type: 'timer',
                     interval: 0
+                }] // TODO: Select object
+            }))));
+
+        menu.addItem(item => item
+            .setTitle("Vault Event")
+            .onClick(_ => setTask(prev => ({
+                ...prev,
+                triggers: [...prev.triggers, {
+                    type: 'vault',
+                    event: 'modify'
                 }] // TODO: Select object
             }))));
 
