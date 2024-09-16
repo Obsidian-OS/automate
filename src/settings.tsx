@@ -49,7 +49,10 @@ function Settings(props: { tab: SettingsTab }) {
     }]);
 
     return <section>
-        <h1>{"Tasks"}</h1>
+        <div className="description">
+            <h1>{"Tasks"}</h1>
+            <p className="setting-item-description">{"Tasks are a collection of steps performed on certain events. You can configure various automations depending on a plethora of conditions, called triggers."}</p>
+        </div>
 
         <div className="task-picker list-box-container task-runner-settings-container">
             <ListBox
