@@ -2,7 +2,6 @@ import React from "react";
 import * as obs from "obsidian";
 import * as icons from 'lucide-react';
 
-import ListBox, {Controls} from "./components/listbox.js";
 import ShellTaskEditor from "./steps/shell-editor.js";
 import JavaScriptEditor from "./steps/javascript-editor.js";
 import ObsidianEditor from "./steps/obsidian-editor.js";
@@ -10,6 +9,7 @@ import TimerEditor from "./triggers/timer-editor.js";
 import ManualEditor from "./triggers/manual-editor.js";
 import ManualStepEditor from "./steps/manual-step-editor.js";
 import EventEditor from "./triggers/event-editor.js";
+import ListBox, { Controls } from "./components/listbox.js";
 
 export interface Task {
     label: string,

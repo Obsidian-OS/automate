@@ -1,7 +1,7 @@
 import React from 'react';
 
 import {Timer} from "../task.js";
-import {Setting} from "../components/setting.js";
+import Setting from '../components/setting.js';
 
 export default function TimerEditor(props: {trigger: Timer}) {
     const [trigger, setTrigger] = React.useState<Timer>(props.trigger);

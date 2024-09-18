@@ -1,8 +1,8 @@
 import React from 'react';
 
 import {ManualStep} from "../task.js";
-import {Setting} from "../components/setting.js";
 import Runner from "../main.js";
+import Setting from '../components/setting.js';
 
 export default function ManualStepEditor(props: { step: ManualStep }) {
     const [trigger, setTrigger] = React.useState<ManualStep>(props.step);

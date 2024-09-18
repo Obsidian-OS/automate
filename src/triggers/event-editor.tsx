@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { VaultEvent } from "../task.js";
-import { Setting } from "../components/setting.js";
+import Setting from '../components/setting.js';
 
 export default function EventEditor(props: { trigger: VaultEvent }) {
     const [trigger, setTrigger] = React.useState<VaultEvent>(props.trigger);

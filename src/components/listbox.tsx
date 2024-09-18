@@ -79,7 +79,7 @@ export default function ListBox(props: {
             className={`list-item${state.index == a ? " active" : ""}`}
             ref={state.refs[a]}
             onClick={_ => setSelection({abs: a})}>
-            <label>{item}</label>
+            {item}
         </div>)}
 
     </div>

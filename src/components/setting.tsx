@@ -20,7 +20,7 @@ type Toggle = {
     checked: boolean,
 };
 
-export function Setting(props: { title: string, description?: string } & types) {
+export default function Setting(props: { title: string, description?: string } & types) {
     const ref = React.createRef<HTMLDivElement>();
 
     React.useEffect(() => {
