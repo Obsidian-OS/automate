@@ -32,43 +32,51 @@ export default function ListBox(props: {
         className="list-box"
         tabIndex={0}
         onKeyUp={e => ({
-            "uparrow": e => setSelection({rel: -1}),
-            "downarrow": e => setSelection({rel: 1}),
+            "uparrow": e => setSelection({ rel: -1 }),
+            "downarrow": e => setSelection({ rel: 1 }),
         } as Record<string, (e: React.KeyboardEvent) => void>)[e.key.toLowerCase() as string]?.(e)}>
 
         <div className={"list-box-controls"}>
             <div className={"button-group"}>
                 {props.controls.onAdd ? <div className="icon-button"
-                                             tabIndex={0}
-                                             onClick={e => {
-                                                 props.controls?.onAdd!(e);
-                                             }}>
-                    <lucide.Plus size={14}/>
+                    tabIndex={0}
+                    onClick={e => {
+                        props.controls?.onAdd!(e);
+                    }}>
+                    <lucide.Plus size={14} />
                 </div> : null}
 
                 {props.controls.onDelete ? <div className="icon-button"
-                                                tabIndex={0}
-                                                onClick={() => {
-                                                    props.controls?.onDelete!(state.index);
-                                                }}>
-                    <lucide.Minus size={14}/>
+                    tabIndex={0}
+                    onClick={() => {
+                        props.controls?.onDelete!(state.index);
+                    }}>
+                    <lucide.Minus size={14} />
                 </div> : null}
                 {props.controls.onSwap ? <>
                     <div className="icon-button"
-                         tabIndex={0}
-                         onClick={() => {
-                             if (props.controls?.onSwap!(state.index, state.index - 1))
-                                 setSelection({rel: -1})
-                         }}>
-                        <lucide.ChevronUp size={14}/>
+                        tabIndex={0}
+                        onClick={() => {
+                            const i = state.index;
+                            const j = state.index - 1;
+
+                            if (i != j && j >= 0 && i >= 0 && i < props.children.length && j < props.children.length)
+                                if (props.controls?.onSwap!(i, j))
+                                    setSelection({ rel: -1 })
+                        }}>
+                        <lucide.ChevronUp size={14} />
                     </div>
                     <div className="icon-button"
-                         tabIndex={0}
-                         onClick={() => {
-                             if (props.controls?.onSwap!(state.index, state.index + 1))
-                                 setSelection({rel: 1})
-                         }}>
-                        <lucide.ChevronDown size={14}/>
+                        tabIndex={0}
+                        onClick={() => {
+                            const i = state.index;
+                            const j = state.index + 1;
+
+                            if (i != j && j >= 0 && i >= 0 && i < props.children.length && j < props.children.length)
+                                if (props.controls?.onSwap!(state.index, state.index + 1))
+                                    setSelection({ rel: 1 })
+                        }}>
+                        <lucide.ChevronDown size={14} />
                     </div>
                 </> : null}
             </div>
@@ -78,7 +86,7 @@ export default function ListBox(props: {
             key={`list-box-item-${a}`}
             className={`list-item${state.index == a ? " active" : ""}`}
             ref={state.refs[a]}
-            onClick={_ => setSelection({abs: a})}>
+            onClick={_ => setSelection({ abs: a })}>
             {item}
         </div>)}
 
